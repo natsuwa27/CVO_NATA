@@ -7,13 +7,13 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class WorkingDayResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id'         => $this->id,
+            'date'       => $this->date?->format('Y-m-d'),
+            'is_open'    => $this->is_open,
+            'time_slots' => TimeSlotResource::collection($this->whenLoaded('timeSlots')),
+        ];
     }
 }
