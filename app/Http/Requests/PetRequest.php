@@ -2,28 +2,34 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\ValidationRule;
 
 class PetRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return false;
-    }
+    public function authorize(): bool { return true; }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
+        $user     = auth()->user();
+        $isUpdate = $this->isMethod('put') || $this->isMethod('patch');
+        $prefix   = $isUpdate ? 'sometimes' : 'required';
+
         return [
-            //
+            'name'          => "{$prefix}|string|max:255",
+            'species'       => "{$prefix}|string|max:100",
+            'breed'         => 'nullable|string|max:100',
+            'color'         => 'nullable|string|max:100',
+            'special_marks' => 'nullable|string|max:255',
+            'weight'        => 'nullable|numeric|min:0',
+            'sex'           => "{$prefix}|in:male,female",
+            'age'           => 'nullable|integer|min:0|max:100',
+            'photo'         => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+            'active'        => 'nullable|boolean',
+            // Admin, empleado y veterinario pueden asignar owner; cliente lo tiene implícito
+            'owner_id'      => in_array($user?->role_id, [1, 2, 4])
+                                ? "{$prefix}|integer|exists:users,id"
+                                : 'nullable',
         ];
     }
 }
